@@ -1,0 +1,17 @@
+# Ignore all locally generated build files
+bin/
+gen/
+libs/
+obj/
+ant.properties
+local.properties
+proguard-project.txt
+
+# Ignore generated language modules accessible through alternate path
+assets/lang/mo
+
+# Ignore keystore (used for signing release APK for Google Play)
+cddaandroid.keystore
+
+# Ignore local debugging scripts
+crash_stack.cmd

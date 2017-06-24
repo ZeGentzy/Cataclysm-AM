@@ -996,15 +996,15 @@ void vehicle::use_controls( const tripoint &pos )
 
         options.emplace_back( _( "Set turret firing modes" ), keybind( "TURRET_FIRE_MODE" ) );
         actions.push_back( [&]{ turrets_set_mode(); } );
-        
+
         // We can also fire manual turrets with ACTION_FIRE while standing at the controls.
         options.emplace_back( _( "Aim turrets manually" ), keybind( "TURRET_MANUAL_AIM" ) );
         actions.push_back( [&]{ turrets_aim_and_fire( true, false ); } );
-        
+
         // This lets us manually override and set the target for the automatic turrets instead.
         options.emplace_back( _( "Aim automatic turrets" ), keybind( "TURRET_MANUAL_OVERRIDE" ) );
         actions.push_back( [&]{ turrets_aim( false, true ); } );
-        
+
         options.emplace_back( _( "Aim individual turret" ), keybind( "TURRET_SINGLE_FIRE" ) );
         actions.push_back( [&]{ turrets_aim_single(); } );
     }
@@ -2583,7 +2583,7 @@ int vehicle::print_part_desc(WINDOW *win, int y1, const int max_y, int width, in
         if( part_flag( pl[i], "CARGO" ) ) {
             //~ used/total volume of a cargo vehicle part
             partname += string_format( _(" (vol: %s/%s %s)"),
-                                       format_volume( stored_volume( pl[i] ) ).c_str(), 
+                                       format_volume( stored_volume( pl[i] ) ).c_str(),
                                        format_volume( max_volume( pl[i] ) ).c_str(),
                                        volume_units_abbr() );
         }
@@ -4831,7 +4831,7 @@ bool vehicle::add_item( int part, const item &itm )
     }
     bool charge = itm.count_by_charges();
     vehicle_stack istack = get_items( part );
-    const long to_move = istack.amount_can_fit( itm );    
+    const long to_move = istack.amount_can_fit( itm );
     if( to_move == 0 || ( charge && to_move < itm.charges ) ) {
         return false; // @add_charges should be used in the latter case
     }
@@ -5695,6 +5695,13 @@ bool vehicle::assign_seat( vehicle_part &pt, const npc& who )
 
     return true;
 }
+
+#ifdef __ANDROID__
+bool vehicle::is_open(int part_index) const
+{
+  return parts[part_index].open;
+}
+#endif
 
 /**
  * Opens an openable part at the specified index. If it's a multipart, opens

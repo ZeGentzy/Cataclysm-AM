@@ -919,7 +919,7 @@ public:
     /**
      * Wheel friction coefficient of the vehicle.
      * Inversely proportional to (wheel area + constant).
-     * 
+     *
      * Affects @ref k_dynamics, which in turn affects velocity and acceleration.
      */
     float k_friction() const;
@@ -938,7 +938,7 @@ public:
     /**
      * Mass coefficient of the vehicle.
      * Roughly proportional to vehicle's mass divided by wheel area, times constant.
-     * 
+     *
      * Affects safe velocity (moderately), acceleration (heavily).
      * Also affects braking (including handbraking) and velocity drop during coasting.
      */
@@ -948,7 +948,7 @@ public:
      * Traction coefficient of the vehicle.
      * 1.0 on road. Outside roads, depends on mass divided by wheel area
      * and the surface beneath wheels.
-     * 
+     *
      * Affects safe velocity, acceleration and handling difficulty.
      */
     float k_traction( float wheel_traction_area ) const;
@@ -1123,7 +1123,7 @@ public:
      * @return the number of shots fired.
      */
     int turrets_aim_single( vehicle_part *tur_part = nullptr );
-    
+
     /*
      * @param pt the vehicle part containing the turret we're trying to target.
      * @return npc object with suitable attributes for targeting a vehicle turret.
@@ -1143,6 +1143,9 @@ public:
     // opens/closes doors or multipart doors
     void open(int part_index);
     void close(int part_index);
+#ifdef __ANDROID__
+    bool is_open(int part_index) const;
+#endif
 
     // Consists only of parts with the FOLDABLE tag.
     bool is_foldable() const;

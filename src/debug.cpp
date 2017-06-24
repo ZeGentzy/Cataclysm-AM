@@ -89,6 +89,11 @@ void realDebugmsg( const char *filename, const char *line, const char *funcname,
                     " Press <color_white>I</color> (or <color_white>i</color>) to also ignore this particular message in the future...",
                     text.c_str(), funcname, filename, line );
 
+#ifdef __ANDROID__
+	input_context ctxt("DEBUG_MSG");
+	ctxt.register_manual_key('I');
+	ctxt.register_manual_key(' ');
+#endif
     for( bool stop = false; !stop; ) {
         switch( inp_mngr.get_input_event().get_first_input() ) {
             case 'i':
@@ -355,6 +360,12 @@ std::ofstream &DebugFile::currentTime()
 
 std::ostream &DebugLog( DebugLevel lev, DebugClass cl )
 {
+#if defined(__ANDROID__) && !defined(RELEASE)
+    // Hack: In non-release builds, redirect all debug logging to standard output instead of log file.
+    std::cout << std::endl;
+    return std::cout;
+#endif
+
     // Error are always logged, they are important,
     // Messages from D_MAIN come from debugmsg and are equally important.
     if( ( ( lev & debugLevel ) && ( cl & debugClass ) ) || lev & D_ERROR || cl & D_MAIN ) {

@@ -189,6 +189,12 @@ static const trait_id trait_VINES3( "VINES3" );
 void advanced_inv(); // player_activity.cpp
 void intro();
 
+#ifdef __ANDROID__
+extern std::map<std::string, std::list<input_event>> quick_shortcuts_map;
+extern bool add_best_key_for_action_to_quick_shortcuts(action_id action, const std::string& category, bool back);
+extern bool add_key_to_quick_shortcuts(long key, const std::string& category, bool back);
+#endif
+
 //The one and only game instance
 game *g;
 #ifdef TILES
@@ -1272,6 +1278,10 @@ bool game::cleanup_at_end()
 
     MAPBUFFER.reset();
     overmap_buffer.clear();
+
+#ifdef __ANDROID__
+    quick_shortcuts_map.clear();
+#endif
     return true;
 }
 
@@ -1692,8 +1702,20 @@ bool game::cancel_activity_or_ignore_query(const char *reason, ...)
     std::string stop_message = text + " " + u.activity.get_stop_phrase() + " " +
                                _( "(Y)es, (N)o, (I)gnore further distractions and finish." );
 
+#ifdef __ANDROID__
+    input_context ctxt("CANCEL_ACTIVITY_OR_IGNORE_QUERY");
+    ctxt.register_manual_key('Y', "Yes");
+    ctxt.register_manual_key('N', "No");
+    ctxt.register_manual_key('I', "Ignore further distractions and finish");
+#endif
     do {
-        ch = popup(stop_message, PF_GET_KEY);
+        #ifdef __ANDROID__
+                // Don't use popup() as this creates its own input context which will override the one above
+                ch = popup(stop_message, PF_NO_WAIT);
+                ch = inp_mngr.get_input_event().get_first_input();
+        #else
+                ch = popup(stop_message, PF_GET_KEY);
+        #endif
     } while (ch != '\n' && ch != ' ' && ch != KEY_ESCAPE &&
              ch != 'Y' && ch != 'N' && ch != 'I' &&
              (force_uc || (ch != 'y' && ch != 'n' && ch != 'i')));
@@ -1864,6 +1886,12 @@ int game::inventory_item_menu(int pos, int iStartX, int iWidth, const inventory_
 
     item &oThisItem = u.i_at( pos );
     if( u.has_item( oThisItem ) ) {
+
+#ifdef __ANDROID__
+    if (get_option<bool>("ANDROID_INVENTORY_AUTOADD"))
+        add_key_to_quick_shortcuts(oThisItem.invlet, "INVENTORY", false);
+#endif
+
         std::vector<iteminfo> vThisItem, vDummy;
 
         const bool bHPR = get_auto_pickup().has_rule(oThisItem.tname( 1, false ));
@@ -2174,7 +2202,9 @@ input_context get_default_mode_input_context()
     ctxt.register_action("zoom_out");
     ctxt.register_action("zoom_in");
     ctxt.register_action("toggle_sidebar_style");
+#ifndef __ANDROID__
     ctxt.register_action("toggle_fullscreen");
+#endif
     ctxt.register_action("toggle_pixel_minimap");
     ctxt.register_action("action_menu");
     ctxt.register_action("main_menu");
@@ -2518,6 +2548,11 @@ bool game::handle_action()
             if (act == ACTION_NULL) {
                 return false;
             }
+#ifdef __ANDROID__
+            if (get_option<bool>("ANDROID_ACTIONMENU_AUTOADD") && ctxt.get_category() == "DEFAULTMODE") {
+                add_best_key_for_action_to_quick_shortcuts(act, ctxt.get_category(), false);
+            }
+#endif
         }
 
         if ( can_action_change_worldstate( act ) ) {
@@ -3670,6 +3705,10 @@ void game::load(std::string worldname, const save_t &name)
 
     read_from_file_optional( worldpath + name.base_path() + ".log", std::bind( &player::load_memorial_file, &u, _1 ) );
 
+#ifdef __ANDROID__
+    read_from_file_optional( worldpath + name.base_path() + ".shortcuts", std::bind( &game::load_shortcuts, this, _1 ) );
+#endif
+
     // Now that the player's worn items are updated, their sight limits need to be
     // recalculated. (This would be cleaner if u.worn were private.)
     u.recalc_sight_limits();
@@ -3837,8 +3876,17 @@ bool game::save_player_data()
     const bool saved_log = write_to_file( playerfile + ".log", [&]( std::ostream &fout ) {
         fout << u.dump_memorial();
     }, _( "player memorial" ) );
+#ifdef __ANDROID__
+    const bool saved_shortcuts = write_to_file( playerfile + ".shortcuts", [&]( std::ostream &fout ) {
+        save_shortcuts(fout);
+    }, _( "quick shortcuts" ) );
+#endif
 
-    return saved_data && saved_weather && saved_log;
+    return saved_data && saved_weather && saved_log
+#ifdef __ANDROID__
+    && saved_shortcuts
+#endif
+    ;
 }
 
 bool game::save()
@@ -4870,7 +4918,7 @@ void game::draw_sidebar()
         wprintz(time_window, c_white, "]");
     } else {
         wprintz( time_window, c_white, _( "Time: ???") );
-    } 
+    }
 
     const oter_id &cur_ter = overmap_buffer.ter(u.global_omt_location());
 
@@ -9956,8 +10004,8 @@ bool game::plfire_check( const targeting_data &args ) {
 
     item &weapon = *args.relevant;
     if( weapon.is_gunmod() ) {
-        add_msg( m_info, 
-            _( "The %s must be attached to a gun, it can not be fired separately." ), 
+        add_msg( m_info,
+            _( "The %s must be attached to a gun, it can not be fired separately." ),
             weapon.tname().c_str() );
         return false;
     }
@@ -9974,7 +10022,7 @@ bool game::plfire_check( const targeting_data &args ) {
         add_msg( m_info, _( "You need a free arm to drive!" ) );
         return false;
     }
-    
+
     // skip the remaining checks if we are firing a melee weapon.
     if( gun.melee() ) {
         return true;
@@ -13441,6 +13489,10 @@ void game::autosave()
     quicksave();    //Driving checks are handled by quicksave()
 }
 
+#if __ANDROID__
+extern bool is_android_intro_message;
+#endif
+
 void intro()
 {
     int maxx, maxy;
@@ -13480,6 +13532,44 @@ void intro()
         fold_and_print(tmp, 0, 0, maxx, c_white, unicode_error_msg, minWidth, minHeight, maxx, maxy);
         wrefresh(tmp);
         inp_mngr.wait_for_any_key();
+        werase(tmp);
+    }
+#endif
+
+#if __ANDROID__
+    if (!get_option<bool>("ANDROID_SKIP_SPLASH")) {
+        const char *android_msg =
+             //------------------------------------------------------------------------------
+            _("Welcome to the unofficial Android port of Cataclysm: Dark Days Ahead!\n"
+              " \n"
+              "Touch controls:\n"
+              "Swipe:                Directional movement (hold for virtual joystick)\n"
+              "Tap:                  Confirm selection (menu) or Pause one turn (in-game)\n"
+              "                      (hold to Pause several turns in-game)\n"
+              "Double-tap:           Cancel/Go back\n"
+              "Pinch:                Zoom in/out (in-game)\n"
+              "Back button:          Toggle virtual keyboard\n"
+              "                      (hold to toggle keyboard shortcuts)\n"
+              " \n"
+              "Tips:\n"
+              "- If you have never played Cataclysm before, this is a keyboard-heavy game.\n"
+              "  This port attempts to minimize keyboard typing without cluttering the view.\n"
+              "- At the bottom of the screen you will sometimes see keyboard shortcuts.\n"
+              "- Many screens within the game already have convenient shortcuts assigned,\n"
+              "  but as you play, typing a key will add it to the shortcuts for that screen.\n"
+              "- Remove a shortcut by flicking up on it. Hold it down to see help text.\n"
+              "- Reset shortcuts for a screen by flicking up to remove all shortcuts.\n"
+              "- Android-specific options live under Settings > Options > Android.\n"
+              "- Enable tiles & change terminal size under Settings > Options > Graphics.\n"
+              "- For the best keyboard experience, use an SSH-friendly virtual keyboard\n"
+              "  such as \"Hacker's Keyboard\" on the Google Play store.\n"
+              "- For support visit: github.com/a1studmuffin/Cataclysm-DDA-Android\n"
+              );
+        fold_and_print(tmp, 0, 0, maxx, c_white, android_msg, minWidth, minHeight, maxx, maxy);
+        wrefresh(tmp);
+        is_android_intro_message = true;
+        inp_mngr.wait_for_any_key();
+        is_android_intro_message = false;
         werase(tmp);
     }
 #endif

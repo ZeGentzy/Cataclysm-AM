@@ -161,12 +161,20 @@ void computer::use()
         size_t options_size = options.size();
         print_newline();
         print_line("%s - %s", name.c_str(), _("Root Menu"));
+#ifdef __ANDROID__
+        input_context ctxt("COMPUTER_MAINLOOP");
+#endif
         for (size_t i = 0; i < options_size; i++) {
             print_line("%d - %s", i + 1, options[i].name.c_str());
+#ifdef __ANDROID__
+            ctxt.register_manual_key('1' + i, options[i].name.c_str());
+#endif
         }
         print_line("Q - %s", _("Quit and shut down"));
         print_newline();
-
+#ifdef __ANDROID__
+        ctxt.register_manual_key('Q', _("Quit and shut down"));
+#endif
         char ch;
         do {
             // TODO: use input context
@@ -1411,6 +1419,12 @@ bool computer::query_bool(const char *mes, ...)
     va_end(ap);
     print_line("%s (Y/N/Q)", text.c_str());
     char ret;
+#ifdef __ANDROID__
+    input_context ctxt("COMPUTER_YESNO");
+    ctxt.register_manual_key('Y');
+    ctxt.register_manual_key('N');
+    ctxt.register_manual_key('Q');
+#endif
     do {
         // TODO: use input context
         ret = inp_mngr.get_input_event().get_first_input();
@@ -1438,6 +1452,12 @@ char computer::query_ynq(const char *mes, ...)
     va_end(ap);
     print_line("%s (Y/N/Q)", text.c_str());
     char ret;
+#ifdef __ANDROID__
+    input_context ctxt("COMPUTER_YESNO");
+    ctxt.register_manual_key('Y');
+    ctxt.register_manual_key('N');
+    ctxt.register_manual_key('Q');
+#endif
     do {
         // TODO: use input context
         ret = inp_mngr.get_input_event().get_first_input();

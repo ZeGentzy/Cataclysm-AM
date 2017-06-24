@@ -75,7 +75,11 @@ void main_menu::print_menu( WINDOW *w_open, int iSel, const int iMenuOffsetX, in
     }
 
     center_print( w_open, window_height - 1, c_red,
+#ifdef __ANDROID__
+                  _( "Please report bugs at github.com/a1studmuffin/Cataclysm-DDA-Android" ) );
+#else
                   _( "Please report bugs to kevin.granade@gmail.com or post on the forums." ) );
+#endif
 
     int iLine = 0;
     const int iOffsetX = ( window_width - FULL_SCREEN_WIDTH ) / 2;
@@ -184,6 +188,9 @@ void main_menu::init_strings()
     if( mmenu_credits.empty() ) {
         mmenu_credits.push_back( _( "No credits information found." ) );
     }
+#ifdef __ANDROID__
+    mmenu_credits.push_back( "\nUnofficial Android port by Michael Davies." );
+#endif
 
     // fill menu with translated menu items
     vMenuItems.clear();

@@ -721,6 +721,9 @@ class game
         void load( std::string worldname, const save_t &name ); // Load a player-specific save file
         bool load_master(std::string worldname); // Load the master data file, with factions &c
         void load_weather(std::istream &fin);
+#ifdef __ANDROID__
+        void load_shortcuts(std::istream &fin);
+#endif
         bool start_game(std::string worldname); // Starts a new game in a world
         void start_special_game(special_game_id gametype); // See gamemode.cpp
 
@@ -733,6 +736,9 @@ class game
         // returns false if saving failed for whatever reason
         bool save_maps();
         void save_weather(std::ostream &fout);
+#ifdef __ANDROID__
+        void save_shortcuts(std::ostream &fout);
+#endif
         // returns false if saving failed for whatever reason
         bool save_uistate();
         void load_uistate(std::string worldname);
@@ -907,7 +913,13 @@ private:
 
         //  int autosave_timeout();  // If autosave enabled, how long we should wait for user inaction before saving.
         void autosave();         // automatic quicksaves - Performs some checks before calling quicksave()
+#ifdef __ANDROID__
+public:
+#endif
         void quicksave();        // Saves the game without quitting
+#ifdef __ANDROID__
+private:
+#endif
         void quickload();        // Loads the previously saved game if it exists
 
         // Input related
@@ -943,7 +955,13 @@ private:
         int next_npc_id, next_faction_id, next_mission_id; // Keep track of UIDs
         std::list<event> events;         // Game events to be processed
         std::map<mtype_id, int> kills;         // Player's kill count
+#ifdef __ANDROID__
+public:
+#endif
         int moves_since_last_save;
+#ifdef __ANDROID__
+private:
+#endif
         time_t last_save_timestamp;
         mutable std::array<float, OVERMAP_LAYERS> latest_lightlevels;
         // remoteveh() cache

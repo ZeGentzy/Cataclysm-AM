@@ -39,7 +39,7 @@
 
 #define DUMP_STACK() dump_stack(__FILE__, __LINE__);
 
-void dump_stack(const char* file, int line);
+void dump_stack( const char *file, int line );
 
 #endif
 

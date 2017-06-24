@@ -222,8 +222,9 @@ const std::string &string_input_popup::query_string( const bool loop, const bool
         create_context();
     }
 #ifdef __ANDROID__
-    if (!draw_only && loop && get_option<bool>("ANDROID_AUTO_KEYBOARD"))
+    if( !draw_only && loop && get_option<bool>( "ANDROID_AUTO_KEYBOARD" ) ) {
         SDL_StartTextInput();
+    }
 #endif
     utf8_wrapper ret( _text );
     if( _position == -1 ) {
@@ -290,8 +291,9 @@ const std::string &string_input_popup::query_string( const bool loop, const bool
 
         if( ch == KEY_ESCAPE ) {
 #ifdef __ANDROID__
-            if (get_option<bool>("ANDROID_AUTO_KEYBOARD"))
+            if( get_option<bool>( "ANDROID_AUTO_KEYBOARD" ) ) {
                 SDL_StopTextInput();
+            }
 #endif
             _text = std::string();
             _canceled = true;

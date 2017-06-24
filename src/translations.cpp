@@ -92,7 +92,8 @@ void set_language()
     // Since we're using libintl-lite instead of libintl on Android, we hack the locale_dir to point directly to the .mo file.
     // This is because of our hacky libintl-lite bindtextdomain() implementation.
     auto env = getenv( "LANGUAGE" );
-    locale_dir = std::string( FILENAMES["base_path"] + "lang/mo/" + (env ? env : "none") + "/LC_MESSAGES/cataclysm-dda.mo").c_str();
+    locale_dir = std::string( FILENAMES["base_path"] + "lang/mo/" + ( env ? env : "none" ) +
+                              "/LC_MESSAGES/cataclysm-dda.mo" ).c_str();
 #else
 #if (defined __linux__ || (defined MACOSX && !defined TILES))
     if( !FILENAMES["base_path"].empty() ) {

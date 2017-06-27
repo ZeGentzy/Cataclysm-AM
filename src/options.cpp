@@ -1559,6 +1559,7 @@ void options_manager::init()
         0, 200, 10
         );
 
+#ifdef ANDROID_ROTATION
     optionNames["slSensor"] = _("Sensor");
     optionNames["slPortrait"] = _("Portrait");
     optionNames["slLandscapeLeft"] = _("Landscape");
@@ -1567,6 +1568,7 @@ void options_manager::init()
         _("Use the device's sensor to orient the screen automatically, or force a specific orientation."),
         "slSensor,slPortrait,slLandscapeLeft,slLandscapeRight", "slSensor", COPT_CURSES_HIDE
         );
+#endif
 
     mOptionsSort["android"]++;
 

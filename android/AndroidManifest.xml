@@ -41,7 +41,8 @@
                   android:label="@string/app_name"
                   android:launchMode="singleInstance"
                   android:keepScreenOn="true"
-                  android:configChanges="keyboardHidden|keyboard|orientation|screenSize"
+                  android:screenOrientation="landscape"
+                  android:configChanges="keyboardHidden|keyboard|screenSize"
                   >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -52,7 +53,8 @@
                   android:label="@string/app_name"
                   android:launchMode="singleInstance"
                   android:keepScreenOn="true"
-                  android:configChanges="keyboardHidden|keyboard|orientation|screenSize"
+                  android:screenOrientation="landscape"
+                  android:configChanges="keyboardHidden|keyboard|screenSize"
                   >
         </activity>
     </application>

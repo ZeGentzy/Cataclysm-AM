@@ -2009,6 +2009,7 @@ void android_vibrate() {
     }
 }
 
+#ifdef ANDROID_ROTATION
 void anroid_set_screen_orientation(int orientation) {
     JNIEnv* env = (JNIEnv*)SDL_AndroidGetJNIEnv();
     jobject activity = (jobject)SDL_AndroidGetActivity();
@@ -2018,6 +2019,7 @@ void anroid_set_screen_orientation(int orientation) {
     env->DeleteLocalRef(activity);
     env->DeleteLocalRef(clazz);
 }
+#endif
 #endif
 
 //Check for any window messages (keypress, paint, mousemove, etc)
@@ -2035,6 +2037,7 @@ void CheckMessages()
        visible_display_frame_dirty = false;
     }
 
+#ifdef ANDROID_ROTATION
     // Handle screen orientation changes
     if (needupdate) {
         // Ref: https://developer.android.com/reference/android/R.attr.html#screenOrientation
@@ -2053,6 +2056,7 @@ void CheckMessages()
             }
         }
     }
+#endif
 
     unsigned long ticks = SDL_GetTicks();
 

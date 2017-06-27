@@ -21,6 +21,7 @@ import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.DialogInterface;
 import android.content.pm.PackageInfo;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.os.*;
@@ -48,6 +49,7 @@ public class SplashScreen extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.e(TAG, "onCreate()");
+        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         super.onCreate(savedInstanceState);
 
         // Start the game if already installed, otherwise start installing...

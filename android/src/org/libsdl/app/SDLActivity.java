@@ -72,6 +72,7 @@ public class SDLActivity extends Activity {
     protected String[] getLibraries() {
         return new String[] {
             "gnustl_shared",
+            "crystax",
             "SDL2",
             "SDL2_image",
             "SDL2_mixer",
@@ -1181,7 +1182,8 @@ class SDLSurface extends SurfaceView implements SurfaceHolder.Callback,
 
 
         boolean skip = false;
-        int requestedOrientation = SDLActivity.mSingleton.getRequestedOrientation();
+//        int requestedOrientation = SDLActivity.mSingleton.getRequestedOrientation();
+        int requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
 
         if (requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
         {

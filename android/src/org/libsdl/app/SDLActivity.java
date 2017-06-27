@@ -229,8 +229,8 @@ public class SDLActivity extends Activity {
            return;
         }
 
-        SDLActivity.handleResume();
         mSurface.setVisibility(View.VISIBLE);
+        SDLActivity.handleResume();
     }
 
 

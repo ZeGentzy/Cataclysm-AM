@@ -1191,10 +1191,11 @@ void options_manager::init()
 
     add("USE_TILES", "graphics", _("Use tiles"),
         _("If true, replaces some TTF rendered text with tiles."),
-#ifdef __ANDROID__
+#if 0 // __ANDROID__
         // On Android, we default to not using tiles, so the game will run on more lower spec devices by default.
         // Users can try turning tiles on, but if that doesn't work, they can just delete game data and reload.
         // Seems like a more user-friendly option than asking them to delete/mess around with the installed 'gfx' folder.
+        // Wulfe813 - Except that people can neither read nor check through options, apparently.
         false, COPT_CURSES_HIDE
 #else
         true, COPT_CURSES_HIDE

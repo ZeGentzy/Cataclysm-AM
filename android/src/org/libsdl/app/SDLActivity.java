@@ -71,8 +71,8 @@ public class SDLActivity extends Activity {
      */
     protected String[] getLibraries() {
         return new String[] {
-            "gnustl_shared",
             "crystax",
+            "gnustl_shared",
             "SDL2",
             "SDL2_image",
             "SDL2_mixer",

@@ -1,3 +1,24 @@
+* [General Linux Guide](#general-linux-guide)
+  * [Compiler](#compiler)
+  * [Tools](#tools)
+  * [Dependencies](#dependencies)
+  * [Make flags](#make-flags)
+* [Debian](#debian)
+  * [Linux (native) ncurses builds](#linux-native-ncurses-builds)
+  * [Linux (native) SDL builds](#linux-native-sdl-builds)
+  * [Cross-compiling to linux 32-bit from linux 64-bit](#cross-compiling-to-linux-32-bit-from-linux-64-bit)
+  * [Cross-compile to Windows from Linux](#cross-compile-to-windows-from-linux)
+  * [Cross-compile to Mac OS X from Linux](#cross-compile-to-mac-os-x-from-linux)
+* [Mac OS X](#mac-os-x)
+  * [Simple build using Homebrew](#simple-build-using-homebrew)
+  * [Advanced info for Developers](#advanced-info-for-developers)
+  * [Troubleshooting](#troubleshooting)
+* [Windows](#windows)
+  * [Visual Studio Guide](#visual-studio-guide)
+  * [MinGW Guide](#mingw-guide)
+  * [Rough guide to building with only MSYS2](#rough-guide-to-building-with-only-msys2)
+* [BSDs](#bsds)
+
 # General Linux Guide
 
 To build Cataclysm from source you will need at least a C++ compiler, some basic developer tools, and necessary build dependencies. The exact package names vary greatly from distro to distro, so this part of the guide is intended to give you higher-level understanding of the process.
@@ -115,16 +136,26 @@ Dependencies:
   * SDL_ttf
   * freetype
   * build essentials
+  * lua5.2 and liblua5.2 - Only necessary if compiling with lua, which some mods like stats through skills use. Versions 5.1, 5.2 and 5.3 are supported.
+  * libsdl2-mixer-dev - Used if compiling with sound support.
 
 Install:
 
-    sudo apt-get install libsdl1.2-dev libsdl-ttf2.0-dev libfreetype6-dev build-essential
+    sudo apt-get install libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev libsdl2-mixer-dev libfreetype6-dev build-essential lua5.2 liblua5.2-dev
 
 ### Building
 
-Run:
+A simple installation could be done by simply running:
 
     make TILES=1
+
+A more comprehensive alternative is:
+
+    make -j2 TILES=1 SOUND=1 RELEASE=1 LUA=1 USE_HOME_DIR=1
+
+The -j2 flag means it will compile with two parallel processes. It can be omitted or changed to -j4 in a more modern processor. If there is no desire to use lua, or have sound, those flags can also be ommitted. The USE_HOME_DIR flag places the user files, like configurations and saves into the home folder, making It easier for backups, and can also be omitted.
+
+
 
 ## Cross-compiling to linux 32-bit from linux 64-bit
 
@@ -261,19 +292,19 @@ Once you have Homebrew installed, open Terminal and run one of the following com
 
 For a curses build:
 
-    brew install homebrew/games/cataclysm
+    brew install cataclysm
 
 For a tiles build:
 
-    brew install homebrew/games/cataclysm --with-tiles
+    brew install cataclysm --with-tiles
 
 For an experimental curses build:
 
-    brew install homebrew/games/cataclysm --HEAD
+    brew install cataclysm --HEAD
 
 For an experimental tiles build:
 
-    brew install homebrew/games/cataclysm --with-tiles --HEAD
+    brew install cataclysm --with-tiles --HEAD
 
 Whichever build you choose, Homebrew will install the appropriate dependencies as needed. The installation will be in `/usr/local/Cellar/cataclysm` with a symlink named `cataclysm` in `/usr/local/bin`.
 

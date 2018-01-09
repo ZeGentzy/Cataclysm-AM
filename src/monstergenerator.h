@@ -2,15 +2,16 @@
 #ifndef MONSTER_GENERATOR_H
 #define MONSTER_GENERATOR_H
 
-#include "json.h"
 #include "enums.h"
 #include "string_id.h"
 #include "mattack_common.h"
 
 #include <map>
 #include <memory>
+#include <vector>
 #include <set>
 
+class JsonObject;
 class Creature;
 struct mtype;
 enum m_flag : int;
@@ -19,9 +20,9 @@ enum m_size : int;
 class monster;
 class Creature;
 struct dealt_projectile_attack;
-using mon_action_death  = void (*)(monster*);
-using mon_action_attack = bool (*)(monster*);
-using mon_action_defend = void (*)(monster&, Creature*, dealt_projectile_attack const*);
+using mon_action_death  = void ( * )( monster * );
+using mon_action_attack = bool ( * )( monster * );
+using mon_action_defend = void ( * )( monster &, Creature *, dealt_projectile_attack const * );
 using mtype_id = string_id<mtype>;
 struct species_type;
 using species_id = string_id<species_type>;

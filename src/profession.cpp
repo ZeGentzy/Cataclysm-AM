@@ -1,17 +1,17 @@
+#include "profession.h"
 #include <iostream>
 #include <sstream>
 #include <iterator>
-
-#include "profession.h"
+#include <map>
 
 #include "debug.h"
 #include "json.h"
 #include "player.h"
-#include "bionics.h"
 #include "text_snippets.h"
 #include "rng.h"
 #include "translations.h"
 #include "addiction.h"
+#include "item_group.h"
 #include "pldata.h"
 #include "itype.h"
 #include "generic_factory.h"
@@ -222,7 +222,7 @@ void profession::check_item_definitions( const itypedecvec &items ) const
 {
     for( auto &itd : items ) {
         if( !item::type_is_defined( itd.type_id ) ) {
-            debugmsg( "profession %s: item %s does not exist", id.c_str() , itd.type_id.c_str() );
+            debugmsg( "profession %s: item %s does not exist", id.c_str(), itd.type_id.c_str() );
         } else if( !itd.snippet_id.empty() ) {
             const itype *type = item::find_type( itd.type_id );
             if( type->snippet_category.empty() ) {

@@ -3,17 +3,18 @@
 #define PROFESSION_H
 
 #include "string_id.h"
-#include "item_group.h"
-#include "item.h"
 
 #include <string>
 #include <vector>
-#include <map>
 #include <set>
+#include <list>
 
 template<typename T>
 class generic_factory;
 class profession;
+using Group_tag = std::string;
+class item;
+using itype_id = std::string;
 class player;
 class JsonArray;
 class JsonObject;
@@ -24,12 +25,10 @@ struct bionic_data;
 using bionic_id = string_id<bionic_data>;
 enum add_type : int;
 
-    // The weird indentation is thanks to astyle; don't fix it unless you feel like
-    // failing a build or two.
-    class Skill;
-    using skill_id = string_id<Skill>;
+class Skill;
+using skill_id = string_id<Skill>;
 
-    class profession
+class profession
 {
     public:
         typedef std::pair<skill_id, int> StartingSkill;

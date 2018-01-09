@@ -7,7 +7,8 @@
 #include "player.h"
 
 
-player &get_sanitized_player(  ) {
+player &get_sanitized_player( )
+{
     player &dummy = g->u;
 
     // Remove first worn item until there are none left.
@@ -19,7 +20,8 @@ player &get_sanitized_player(  ) {
     return dummy;
 }
 
-TEST_CASE( "use_eyedrops" ) {
+TEST_CASE( "use_eyedrops" )
+{
     player &dummy = get_sanitized_player();
 
     item &test_item = dummy.i_add( item( "saline", 0, item::default_charges_tag{} ) );
@@ -47,26 +49,24 @@ TEST_CASE( "use_eyedrops" ) {
     REQUIRE( test_item_pos == INT_MIN );
 }
 
-monster *find_adjacent_monster( const tripoint &pos ) {
+monster *find_adjacent_monster( const tripoint &pos )
+{
     tripoint target = pos;
-    monster *candidate = nullptr;
     for( target.x = pos.x - 1; target.x <= pos.x + 1; target.x++ ) {
         for( target.y = pos.y - 1; target.y <= pos.y + 1; target.y++ ) {
             if( target == pos ) {
                 continue;
             }
-            if( g->mon_at( target ) != -1 ) {
-                candidate = g->monster_at( target );
-                if( candidate != nullptr ) {
-                    return candidate;
-                }
+            if( monster *const candidate = g->critter_at<monster>( target ) ) {
+                return candidate;
             }
         }
     }
-    return candidate;
+    return nullptr;
 }
 
-TEST_CASE( "use_manhack" ) {
+TEST_CASE( "use_manhack" )
+{
     player &dummy = get_sanitized_player();
 
     g->clear_zombies();

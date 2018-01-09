@@ -52,6 +52,7 @@
 #ifdef __ANDROID__
 #include "worldfactory.h"
 #include "action.h"
+#include "map.h"
 #include "vehicle.h"
 #include "inventory.h"
 #include <jni.h>
@@ -439,7 +440,7 @@ bool WinCreate()
 #ifdef __ANDROID__
 	// TODO: Not too sure why this works to make fullscreen on Android behave. :/
     if ( window_flags & SDL_WINDOW_FULLSCREEN || window_flags & SDL_WINDOW_FULLSCREEN_DESKTOP ) {
-        SDL_GetWindowSize( window, &WindowWidth, &WindowHeight );
+        SDL_GetWindowSize( ::window.get(), &WindowWidth, &WindowHeight );
     }
 
     // Load virtual joystick texture
@@ -447,7 +448,7 @@ bool WinCreate()
     if ( !touch_joystick_surface ) {
         throw std::runtime_error(IMG_GetError());
     }
-    touch_joystick = SDL_CreateTextureFromSurface( renderer, touch_joystick_surface );
+    touch_joystick = SDL_CreateTextureFromSurface( renderer.get(), touch_joystick_surface );
     if( !touch_joystick ) {
         dbg( D_ERROR) << "failed to create texture: " << SDL_GetError();
     }
@@ -654,14 +655,14 @@ void CachedTTFFont::OutputChar(std::string ch, int const x, int const y, unsigne
     SDL_Rect rect {x, y, value.width, fontheight};
 #ifdef __ANDROID__
     if (opacity != 1.0f)
-        SDL_SetTextureAlphaMod(value.texture, opacity * 255.0f);
+        SDL_SetTextureAlphaMod( value.texture.get(), opacity * 255.0f);
 #endif
     if( SDL_RenderCopy( renderer.get(), value.texture.get(), nullptr, &rect ) ) {
         dbg(D_ERROR) << "SDL_RenderCopy failed: " << SDL_GetError();
     }
 #ifdef __ANDROID__
     if (opacity != 1.0f)
-        SDL_SetTextureAlphaMod(value.texture, 255);
+        SDL_SetTextureAlphaMod(value.texture.get(), 255);
 #endif
 }
 
@@ -687,14 +688,14 @@ void BitmapFont::OutputChar(long t, int x, int y, unsigned char color)
     rect.x = x; rect.y = y; rect.w = fontwidth; rect.h = fontheight;
 #ifdef __ANDROID__
     if (opacity != 1.0f)
-        SDL_SetTextureAlphaMod(ascii[color], opacity * 255);
+        SDL_SetTextureAlphaMod(ascii[color].get(), opacity * 255);
 #endif
     if( SDL_RenderCopy( renderer.get(), ascii[color].get(), &src, &rect ) != 0 ) {
         dbg(D_ERROR) << "SDL_RenderCopy failed: " << SDL_GetError();
     }
 #ifdef __ANDROID__
     if (opacity != 1.0f)
-        SDL_SetTextureAlphaMod(ascii[color], 255);
+        SDL_SetTextureAlphaMod(ascii[color].get(), 255);
 #endif
 }
 
@@ -1746,29 +1747,29 @@ void draw_quick_shortcuts() {
         else
             rect = { (int)(i * width + border), (int)(WindowHeight - height), (int)(width - border*2), (int)(height) };
         if (hovered)
-            SDL_SetRenderDrawColor( renderer, 0, 0, 0, 255 );
+            SDL_SetRenderDrawColor( renderer.get(), 0, 0, 0, 255 );
         else
-            SDL_SetRenderDrawColor( renderer, 0, 0, 0, get_option<int>("ANDROID_SHORTCUT_OPACITY_BG")*0.01f*255.0f );
-        SDL_SetRenderDrawBlendMode( renderer, SDL_BLENDMODE_BLEND );
-        SDL_RenderFillRect( renderer, &rect );
+            SDL_SetRenderDrawColor( renderer.get(), 0, 0, 0, get_option<int>("ANDROID_SHORTCUT_OPACITY_BG")*0.01f*255.0f );
+        SDL_SetRenderDrawBlendMode( renderer.get(), SDL_BLENDMODE_BLEND );
+        SDL_RenderFillRect( renderer.get(), &rect );
         if (hovered) {
             // draw a second button hovering above the first one
             if (shortcut_right)
                 rect = { WindowWidth - (int)((i+1) * width + border), (int)(WindowHeight - height * 2.2f), (int)(width - border*2), (int)(height) };
             else
                 rect = { (int)(i * width + border), (int)(WindowHeight - height * 2.2f), (int)(width - border*2), (int)(height) };
-            SDL_SetRenderDrawColor( renderer, 0, 0, 196, 255 );
-            SDL_RenderFillRect( renderer, &rect );
+            SDL_SetRenderDrawColor( renderer.get(), 0, 0, 196, 255 );
+            SDL_RenderFillRect( renderer.get(), &rect );
 
             if (show_hint) {
                 // draw a backdrop for the hint text
                 rect = { 0, (int)((WindowHeight - height)*0.5f), (int)WindowWidth, (int)height };
-                SDL_SetRenderDrawColor( renderer, 0, 0, 0, get_option<int>("ANDROID_SHORTCUT_OPACITY_BG")*0.01f*255.0f );
-                SDL_RenderFillRect( renderer, &rect );
+                SDL_SetRenderDrawColor( renderer.get(), 0, 0, 0, get_option<int>("ANDROID_SHORTCUT_OPACITY_BG")*0.01f*255.0f );
+                SDL_RenderFillRect( renderer.get(), &rect );
             }
         }
-        SDL_SetRenderDrawBlendMode( renderer, SDL_BLENDMODE_NONE );
-        SDL_RenderSetScale( renderer, text_scale, text_scale);
+        SDL_SetRenderDrawBlendMode( renderer.get(), SDL_BLENDMODE_NONE );
+        SDL_RenderSetScale( renderer.get(), text_scale, text_scale);
         int text_x, text_y;
         if (shortcut_right)
             text_x = (WindowWidth - (i + 0.5f) * width - (font->fontwidth * text.length()) * text_scale * 0.5f) / text_scale;
@@ -1791,7 +1792,7 @@ void draw_quick_shortcuts() {
                 int hint_length = utf8_width(hint_text);
                 if (WindowWidth * safe_margin < font->fontwidth * text_scale * hint_length)
                     text_scale *= (WindowWidth * safe_margin) / (font->fontwidth * text_scale * hint_length); // scale to fit comfortably
-                SDL_RenderSetScale( renderer, text_scale, text_scale);
+                SDL_RenderSetScale( renderer.get(), text_scale, text_scale);
                 font->opacity = get_option<int>("ANDROID_SHORTCUT_OPACITY_SHADOW")*0.01f;
                 text_x = (WindowWidth - ((font->fontwidth  * hint_length) * text_scale)) * 0.5f / text_scale;
                 text_y = (WindowHeight - font->fontheight * text_scale) * 0.5f / text_scale;
@@ -1801,7 +1802,7 @@ void draw_quick_shortcuts() {
             }
         }
         font->opacity = 1.0f;
-        SDL_RenderSetScale( renderer, 1.0f, 1.0f);
+        SDL_RenderSetScale( renderer.get(), 1.0f, 1.0f);
         i++;
         if ((i+1) * width > WindowWidth)
             break;
@@ -1829,19 +1830,19 @@ void draw_virtual_joystick() {
     dstrect.w = dstrect.h = ( get_option<float>("ANDROID_DEADZONE_RANGE") ) * longest_window_edge * 2;
     dstrect.x = finger_down_x - dstrect.w/2;
     dstrect.y = finger_down_y - dstrect.h/2;
-    SDL_RenderCopy( renderer, touch_joystick, NULL, &dstrect );
+    SDL_RenderCopy( renderer.get(), touch_joystick, NULL, &dstrect );
 
     // Draw repeat delay range
     dstrect.w = dstrect.h = ( get_option<float>("ANDROID_DEADZONE_RANGE") + get_option<float>("ANDROID_REPEAT_DELAY_RANGE") ) * longest_window_edge * 2;
     dstrect.x = finger_down_x - dstrect.w/2;
     dstrect.y = finger_down_y - dstrect.h/2;
-    SDL_RenderCopy( renderer, touch_joystick, NULL, &dstrect );
+    SDL_RenderCopy( renderer.get(), touch_joystick, NULL, &dstrect );
 
     // Draw current touch position (50% size of repeat delay range)
     dstrect.w = dstrect.h = dstrect.w/2;
     dstrect.x = finger_down_x + (finger_curr_x - finger_down_x)/2 - dstrect.w/2;
     dstrect.y = finger_down_y + (finger_curr_y - finger_down_y)/2 - dstrect.h/2;
-    SDL_RenderCopy( renderer, touch_joystick, NULL, &dstrect );
+    SDL_RenderCopy( renderer.get(), touch_joystick, NULL, &dstrect );
 
 }
 
@@ -2351,7 +2352,7 @@ void CheckMessages()
                     WindowWidth = ev.window.data1;
                     WindowHeight = ev.window.data2;
                     SDL_Delay(500);
-                    SDL_GetWindowSurface(window);
+                    SDL_GetWindowSurface(::window.get());
                     refresh_display();
                     needupdate = true;
                     break;
@@ -2377,7 +2378,7 @@ void CheckMessages()
 #ifdef __ANDROID__
                 // Toggle virtual keyboard with Android back button. For some reason I get double inputs, so ignore everything once it's already down.
                 if (ev.key.keysym.sym == SDLK_AC_BACK && ac_back_down_time == 0) {
-                    LOGD("SDLK_AC_BACK down");
+                    //LOGD("SDLK_AC_BACK down");
                     ac_back_down_time = ticks;
                     quick_shortcuts_toggle_handled = false;
                 }
@@ -3013,7 +3014,7 @@ input_event input_manager::get_input_event() {
     // see, e.g., http://linux.die.net/man/3/getch
     // so although it's non-obvious, that refresh() call (and maybe InvalidateRect?) IS supposed to be there
 
-#ifdef 0 // __ANDROID__
+#if 0 // __ANDROID__
     // BUGFIX for experimental - don't force mainwin if NULL win was passed in, otherwise this ruins the Android intro message.
     if (!is_android_intro_message)
         if(win == NULL) win = mainwin;

@@ -550,7 +550,7 @@ int main(int argc, char *argv[])
 
     g->init_ui();
 
-    curs_set(0); // Invisible cursor here, because MAPBUFFER.load() is crash-prone
+    catacurses::curs_set( 0 ); // Invisible cursor here, because MAPBUFFER.load() is crash-prone
 
 #if (!(defined _WIN32 || defined WINDOWS))
     struct sigaction sigIntHandler;
@@ -653,7 +653,7 @@ void exit_handler(int s)
     const int old_timeout = inp_mngr.get_timeout();
     inp_mngr.reset_timeout();
     if (s != 2 || query_yn(_("Really Quit? All unsaved changes will be lost."))) {
-        erase(); // Clear screen
+        catacurses::erase(); // Clear screen
 
         deinitDebug();
 
@@ -662,7 +662,7 @@ void exit_handler(int s)
             delete g;
         }
 
-        endwin();
+        catacurses::endwin();
 
         exit( exit_status );
     }

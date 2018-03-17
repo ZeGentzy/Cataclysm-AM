@@ -81,7 +81,7 @@
 # enforces build failure when warnings are encountered.
 # We want to error on everything to make sure we don't check in code with new warnings.
 RELEASE_FLAGS = -Werror
-WARNINGS = -Wall -Wextra
+WARNINGS = -Wall -Wextra -Wpedantic -Wall
 # Uncomment below to disable warnings
 #WARNINGS = -w
 DEBUGSYMS = -g
@@ -266,9 +266,9 @@ ifndef RELEASE
 endif
 
 ifeq ($(shell sh -c 'uname -o 2>/dev/null || echo not'),Cygwin)
-    OTHERS += -std=gnu++11
+    OTHERS += -std=gnu++14
   else
-    OTHERS += -std=c++11
+    OTHERS += -std=c++14
 endif
 
 CXXFLAGS += $(WARNINGS) $(DEBUG) $(DEBUGSYMS) $(PROFILE) $(OTHERS) -MMD -MP

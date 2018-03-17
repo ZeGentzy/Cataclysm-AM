@@ -60,6 +60,7 @@ src/options.cpp
 src/overmapbuffer.cpp
 src/overmap.cpp
 src/path_info.cpp
+src/paneled_ui.cpp
 src/player.cpp
 src/ranged.cpp
 src/requirements.cpp
@@ -92,6 +93,7 @@ src/mingw.thread.h
 src/mission.h
 src/overmapbuffer.h
 src/overmap.h
+src/paneled_ui.h
 src/player.h
 src/simplexnoise.h
 src/uistate.h

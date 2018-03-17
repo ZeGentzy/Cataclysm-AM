@@ -1,6 +1,6 @@
 #include "options.h"
+#include "paneled_ui.h"
 #include "game.h"
-#include "output.h"
 #include "debug.h"
 #include "translations.h"
 #include "filesystem.h"
@@ -1576,34 +1576,6 @@ static void refresh_tiles( bool, bool, bool ) {
 }
 #endif // TILES
 
-void draw_borders_external( const catacurses::window &w, int horizontal_level, std::map<int, bool> &mapLines, const bool world_options_only )
-{
-    if( !world_options_only ) {
-        draw_border( w, BORDER_COLOR, _( " OPTIONS " ) );
-    }
-    // intersections
-    mvwputch( w, horizontal_level, 0, BORDER_COLOR, LINE_XXXO ); // |-
-    mvwputch( w, horizontal_level, getmaxx( w ) - 1, BORDER_COLOR, LINE_XOXX ); // -|
-    for( auto &mapLine : mapLines ) {
-        mvwputch( w, getmaxy( w ) - 1, mapLine.first + 1, BORDER_COLOR, LINE_XXOX ); // _|_
-    }
-    wrefresh( w );
-}
-
-void draw_borders_internal( const catacurses::window &w, std::map<int, bool> &mapLines )
-{
-    for( int i = 0; i < getmaxx( w ); ++i ) {
-        if( mapLines[i] ) {
-            // intersection
-            mvwputch( w, 0, i, BORDER_COLOR, LINE_OXXX );
-        } else {
-            // regular line
-            mvwputch( w, 0, i, BORDER_COLOR, LINE_OXOX );
-        }
-    }
-    wrefresh( w );
-}
-
 std::string options_manager::show(bool ingame, const bool world_options_only)
 {
     // temporary alias so the code below does not need to be changed
@@ -1623,23 +1595,34 @@ std::string options_manager::show(bool ingame, const bool world_options_only)
     const int iContentHeight = FULL_SCREEN_HEIGHT - 3 - iTooltipHeight - iWorldOffset;
 
     const int iOffsetX = TERMX > FULL_SCREEN_WIDTH ? (TERMX - FULL_SCREEN_WIDTH) / 2 : 0;
-    const int iOffsetY = ( TERMY > FULL_SCREEN_HEIGHT ? (TERMY - FULL_SCREEN_HEIGHT) / 2 : 0 ) + iWorldOffset;
+    const int iOffsetY = ( TERMY > FULL_SCREEN_HEIGHT ? (TERMY - FULL_SCREEN_HEIGHT) / 2 : 0 ) + iWorldOffset + 1000;
 
     std::map<int, bool> mapLines;
     mapLines[4] = true;
     mapLines[60] = true;
 
-    catacurses::window w_options_border = catacurses::newwin(FULL_SCREEN_HEIGHT, FULL_SCREEN_WIDTH, iOffsetY - iWorldOffset, iOffsetX);
     catacurses::window w_options_tooltip = catacurses::newwin(iTooltipHeight, FULL_SCREEN_WIDTH - 2, 1 + iOffsetY, 1 + iOffsetX);
     catacurses::window w_options_header = catacurses::newwin(1, FULL_SCREEN_WIDTH - 2, 1 + iTooltipHeight + iOffsetY, 1 + iOffsetX);
     catacurses::window w_options = catacurses::newwin(iContentHeight, FULL_SCREEN_WIDTH - 2, iTooltipHeight + 2 + iOffsetY, 1 + iOffsetX);
 
+	ui::window win;
+
+	auto window_child = win.get_child();
+	window_child->swap_child(std::make_unique<ui::split_panel>(true, true));
+
+	auto split = (ui::split_panel*)window_child->get_child();
+	split->add_child(std::make_unique<ui::padding_panel>(true));
+	split->add_child(std::make_unique<ui::padding_panel>(true));
+	split->add_child(std::make_unique<ui::debug_panel>());
+	split->add_child(std::make_unique<ui::debug_panel2>());
+
+	win.set_size({FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT});
+
     if( world_options_only ) {
-        worldfactory::draw_worldgen_tabs(w_options_border, 1);
+        worldfactory::draw_worldgen_tabs(win.lwin(), 1);
     }
 
-    draw_borders_external( w_options_border, iTooltipHeight + 1 + iWorldOffset, mapLines, world_options_only );
-    draw_borders_internal( w_options_header, mapLines );
+	win.draw();
 
     int iCurrentPage = world_options_only ? iWorldOptPage : 0;
     int iLastPage = 0;
@@ -1716,9 +1699,8 @@ std::string options_manager::show(bool ingame, const bool world_options_only)
                       cLineColor, value );
         }
 
-        draw_scrollbar(w_options_border, iCurrentLine, iContentHeight,
+        draw_scrollbar(win.lwin(), iCurrentLine, iContentHeight,
                        mPageItems[iCurrentPage].size(), iTooltipHeight + 2 + iWorldOffset, 0, BORDER_COLOR);
-        wrefresh(w_options_border);
 
         //Draw Tabs
         if( !world_options_only ) {
@@ -1868,7 +1850,7 @@ std::string options_manager::show(bool ingame, const bool world_options_only)
             }
         } else if( action == "HELP_KEYBINDINGS" ) {
             // keybinding screen erased the internal borders of main menu, restore it:
-            draw_borders_internal( w_options_header, mapLines );
+			win.draw();
         } else if (action == "QUIT") {
             break;
         }

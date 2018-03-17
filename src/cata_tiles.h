@@ -302,11 +302,9 @@ class tileset_loader
         int offset = 0;
         int size = 0;
 
-        struct {
-            int R;
-            int G;
-            int B;
-        };
+        int R;
+        int G;
+        int B;
 
         int tile_atlas_width;
 

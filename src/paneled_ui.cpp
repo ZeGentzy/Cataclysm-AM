@@ -361,7 +361,7 @@ void ui::padding_panel::draw()
 point ui::padding_panel::perfered_size()
 {
 	point ret = {0, 0};
-	if (bordered && (!parent || parent->child_should_make_own_border() || !parent->is_bordered()))
+	if (bordered)
 	{
 		ret = {1, 1};
 	}
@@ -382,9 +382,9 @@ point ui::padding_panel::perfered_size()
 point ui::padding_panel::min_size()
 {
 	point ret = {0, 0};
-	if (bordered && (!parent || parent->child_should_make_own_border() || !parent->is_bordered()))
+	if (bordered)
 	{
-		ret = {1, 1};
+		ret = {2, 2};
 	}
 
 	if (child)
@@ -405,7 +405,7 @@ void ui::padding_panel::set_size(point size, point offset)
 	this->size = size;
 	this->offset = offset;
 
-	if (bordered && (!parent || parent->child_should_make_own_border() || !parent->is_bordered()))
+	if (bordered)
 	{
 		border_direction_vector border_dir
 		(
@@ -429,8 +429,8 @@ void ui::padding_panel::set_size(point size, point offset)
 	}
 }
 
-ui::split_panel::split_panel(bool bordered, bool stacked)
-	: bordered(bordered), stacked(stacked) {}
+ui::split_panel::split_panel(bool bordered, bool entries_seperated, bool stacked)
+	: bordered(bordered), stacked(stacked), entries_seperated(entries_seperated) {}
 
 void ui::split_panel::draw()
 {
@@ -443,9 +443,9 @@ void ui::split_panel::draw()
 point ui::split_panel::perfered_size()
 {
 	point ret;
-	if (bordered && (!parent || parent->child_should_make_own_border() || !parent->is_bordered()))
+	if (bordered)
 	{
-		ret = {1, 1};
+		ret = {2, 2};
 	}
 
 	for (auto& child : children)
@@ -453,13 +453,16 @@ point ui::split_panel::perfered_size()
 		ret += child->perfered_size();
 	}
 
-	if (stacked)
+	if (entries_seperated)
 	{
-		ret.y += std::max((size_t)0, children.size() - 1);
-	}
-	else
-	{
-		ret.x += std::max((size_t)0, children.size() - 1);
+		if (stacked)
+		{
+			ret.y += std::max((size_t)0, children.size() - 1);
+		}
+		else
+		{
+			ret.x += std::max((size_t)0, children.size() - 1);
+		}
 	}
 
 	return ret;
@@ -468,9 +471,9 @@ point ui::split_panel::perfered_size()
 point ui::split_panel::min_size()
 {
 	point ret;
-	if (bordered && (!parent || parent->child_should_make_own_border() || !parent->is_bordered()))
+	if (bordered)
 	{
-		ret = {1, 1};
+		ret = {2, 2};
 	}
 
 	for (auto& child : children)
@@ -478,13 +481,16 @@ point ui::split_panel::min_size()
 		ret += child->min_size();
 	}
 
-	if (stacked)
+	if (entries_seperated)
 	{
-		ret.y += std::max((size_t)0, children.size() - 1);
-	}
-	else
-	{
-		ret.x += std::max((size_t)0, children.size() - 1);
+		if (stacked)
+		{
+			ret.y += std::max((size_t)0, children.size() - 1);
+		}
+		else
+		{
+			ret.x += std::max((size_t)0, children.size() - 1);
+		}
 	}
 
 	return ret;
@@ -496,18 +502,26 @@ void ui::split_panel::update_sizes()
 	sizes.clear();
 	sizes.reserve(children.size());
 
+	if (bordered)
+	{
+		s -= {2, 2};
+	}
+
 	if (children.empty())
 	{
 		return;
 	}
 
-	if (stacked)
+	if (entries_seperated)
 	{
-		s.y -= std::max((size_t)0, children.size() - 1);
-	}
-	else
-	{
-		s.x -= std::max((size_t)0, children.size() - 1);
+		if (stacked)
+		{
+			s.y -= std::max((size_t)0, children.size() - 1);
+		}
+		else
+		{
+			s.x -= std::max((size_t)0, children.size() - 1);
+		}
 	}
 
 	point total_min = {0, 0};
@@ -635,14 +649,14 @@ void ui::split_panel::update_sizes()
 	{
 		for (auto& size2 : sizes)
 		{
-			size2.y = size.y;
+			size2.y = s.y;
 		}
 	}
 	else
 	{
 		for (auto& size2 : sizes)
 		{
-			size2.x = size.x;
+			size2.x = s.x;
 		}
 	}
 }
@@ -652,7 +666,7 @@ void ui::split_panel::set_size(point size, point offset)
 	this->size = size;
 	this->offset = offset;
 
-	if (bordered && (!parent || parent->child_should_make_own_border() || !parent->is_bordered()))
+	if (bordered)
 	{
 		border_direction_vector border_dir
 		(
@@ -702,19 +716,28 @@ void ui::split_panel::set_size(point size, point offset)
 		{
 			offset.y += sizes[i].y;
 			size.y -= sizes[i].y;
-			utils::mark_line(offset, size.x, border_dir, border_color, false, BORDER_COLOR);
-			offset.y += 1;
-			size.y -= 1;
+			if (entries_seperated)
+			{
+				utils::mark_line(offset, size.x, border_dir, border_color, false, BORDER_COLOR);
+				offset.y += 1;
+				size.y -= 1;
+			}
 		}
 		else
 		{
 			offset.x += sizes[i].x;
 			size.x -= sizes[i].x;
-			utils::mark_line(offset, size.y, border_dir, border_color, true, BORDER_COLOR);
-			offset.x += 1;
-			size.x -= 1;
+			if (entries_seperated)
+			{
+				utils::mark_line(offset, size.y, border_dir, border_color, true, BORDER_COLOR);
+				offset.x += 1;
+				size.x -= 1;
+			}
 		}
-		owner->border_handler->add_border_data(border_dir, border_color);
+		if (entries_seperated)
+		{
+			owner->border_handler->add_border_data(border_dir, border_color);
+		}
 		i++;
 	}
 }

@@ -74,7 +74,6 @@ public:
 	virtual void set_size(point size, point offset) = 0;
 
 	virtual bool is_bordered() = 0;
-	virtual bool child_should_make_own_border() = 0;
 
 	void set_parent(panel* parent) { this->parent = parent; }
 	void set_owner(window* win) { this->owner = win; }
@@ -89,7 +88,6 @@ class debug_panel2 : public panel
 	point min_size() { return {11, 10}; }
 	point perfered_size() { return {20, 25}; }
 	bool is_bordered() { return true; };
-	bool child_should_make_own_border() { return false; };
 
 	void set_size(point size, point offset);
 };
@@ -100,7 +98,6 @@ class debug_panel : public panel
 	point min_size() { return {5, 5}; }
 	point perfered_size() { return {50, 50}; }
 	bool is_bordered() { return true; };
-	bool child_should_make_own_border() { return false; };
 
 	void set_size(point size, point offset);
 };
@@ -127,8 +124,6 @@ public:
 	void set_size(point size, point offset);
 
 	bool is_bordered() { return bordered; }
-
-	bool child_should_make_own_border() { return false; }
 private:
 	bool bordered;
 	std::unique_ptr<panel> child;
@@ -139,8 +134,8 @@ private:
 class split_panel : public panel
 {
 public:
-	split_panel() { split_panel(false, false); }
-	split_panel(bool bordered, bool stacked);
+	split_panel() { split_panel(false, true, false); }
+	split_panel(bool bordered, bool entries_seperated, bool stacked);
 
 	void draw();
 	void add_child(std::unique_ptr<panel> child)
@@ -161,13 +156,12 @@ public:
 
 	bool is_bordered() { return bordered; }
 
-	bool child_should_make_own_border() { return false; }
-
 private:
 	void update_sizes();
 
 	bool bordered;
 	bool stacked;
+	bool entries_seperated;
 	std::vector<point> sizes;
 	std::vector<std::unique_ptr<panel>> children;
 	point size;

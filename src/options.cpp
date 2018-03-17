@@ -1608,11 +1608,11 @@ std::string options_manager::show(bool ingame, const bool world_options_only)
 	ui::window win;
 
 	auto window_child = win.get_child();
-	window_child->swap_child(std::make_unique<ui::split_panel>(true, true));
+	window_child->swap_child(std::make_unique<ui::split_panel>(false, true, true));
 
 	auto split = (ui::split_panel*)window_child->get_child();
-	split->add_child(std::make_unique<ui::padding_panel>(true));
-	split->add_child(std::make_unique<ui::padding_panel>(true));
+	split->add_child(std::make_unique<ui::padding_panel>(false));
+	split->add_child(std::make_unique<ui::padding_panel>(false));
 	split->add_child(std::make_unique<ui::debug_panel>());
 	split->add_child(std::make_unique<ui::debug_panel2>());
 

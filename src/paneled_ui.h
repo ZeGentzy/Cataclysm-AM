@@ -192,8 +192,8 @@ public:
 	void set_label(std::string label) { this->label = label; }
 	std::string get_label() { return label; }
 
-	void set_expected_text_amount(size_t expected_text_amount) { this->expected_text_amount = expected_text_amount; }
-	size_t get_expected_text_amount() { return expected_text_amount; }
+	void set_expected_text_amount(int expected_text_amount) { this->expected_text_amount = expected_text_amount; }
+	int get_expected_text_amount() { return expected_text_amount; }
 
 	void draw();
 	point min_size();
@@ -206,7 +206,7 @@ public:
 private:
 	std::string label;
 	bool bordered;
-	size_t expected_text_amount;
+	int expected_text_amount;
 	point size;
 	point offset;
 };

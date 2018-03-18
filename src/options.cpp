@@ -1595,13 +1595,12 @@ std::string options_manager::show(bool ingame, const bool world_options_only)
     const int iContentHeight = FULL_SCREEN_HEIGHT - 3 - iTooltipHeight - iWorldOffset;
 
     const int iOffsetX = TERMX > FULL_SCREEN_WIDTH ? (TERMX - FULL_SCREEN_WIDTH) / 2 : 0;
-    const int iOffsetY = ( TERMY > FULL_SCREEN_HEIGHT ? (TERMY - FULL_SCREEN_HEIGHT) / 2 : 0 ) + iWorldOffset + 1000;
+    const int iOffsetY = ( TERMY > FULL_SCREEN_HEIGHT ? (TERMY - FULL_SCREEN_HEIGHT) / 2 : 0 ) + iWorldOffset;
 
     std::map<int, bool> mapLines;
     mapLines[4] = true;
     mapLines[60] = true;
 
-    catacurses::window w_options_tooltip = catacurses::newwin(iTooltipHeight, FULL_SCREEN_WIDTH - 2, 1 + iOffsetY, 1 + iOffsetX);
     catacurses::window w_options_header = catacurses::newwin(1, FULL_SCREEN_WIDTH - 2, 1 + iTooltipHeight + iOffsetY, 1 + iOffsetX);
     catacurses::window w_options = catacurses::newwin(iContentHeight, FULL_SCREEN_WIDTH - 2, iTooltipHeight + 2 + iOffsetY, 1 + iOffsetX);
 
@@ -1611,7 +1610,10 @@ std::string options_manager::show(bool ingame, const bool world_options_only)
 	window_child->swap_child(std::make_unique<ui::split_panel>(false, true, true));
 
 	auto split = (ui::split_panel*)window_child->get_child();
-	split->add_child(std::make_unique<ui::padding_panel>(false));
+	split->add_child(std::make_unique<ui::label_panel>(false, 300));
+
+	auto label_pan = ((ui::label_panel*)split->get_children()[0].get());
+
 	split->add_child(std::make_unique<ui::padding_panel>(false));
 	split->add_child(std::make_unique<ui::debug_panel>());
 	split->add_child(std::make_unique<ui::debug_panel2>());
@@ -1622,7 +1624,6 @@ std::string options_manager::show(bool ingame, const bool world_options_only)
         worldfactory::draw_worldgen_tabs(win.lwin(), 1);
     }
 
-	win.draw();
 
     int iCurrentPage = world_options_only ? iWorldOptPage : 0;
     int iLastPage = 0;
@@ -1650,10 +1651,6 @@ std::string options_manager::show(bool ingame, const bool world_options_only)
                     mvwputch(w_options, i, j, BORDER_COLOR, LINE_XOXO);
                 } else {
                     mvwputch(w_options, i, j, c_black, ' ');
-                }
-
-                if (i < iTooltipHeight) {
-                    mvwputch(w_options_tooltip, i, j, c_black, ' ');
                 }
             }
         }
@@ -1724,6 +1721,8 @@ std::string options_manager::show(bool ingame, const bool world_options_only)
 
         wrefresh(w_options_header);
 
+		std::string label = "";
+
 #if (defined TILES || defined _WIN32 || defined WINDOWS)
         if (mPageItems[iCurrentPage][iCurrentLine] == "TERMINAL_X") {
             int new_terminal_x, new_window_width;
@@ -1732,13 +1731,16 @@ std::string options_manager::show(bool ingame, const bool world_options_only)
             value_conversion >> new_terminal_x;
             new_window_width = projected_window_width(new_terminal_x);
 
-            fold_and_print(w_options_tooltip, 0, 0, 78, c_white,
-                           ngettext("%s #%s -- The window will be %d pixel wide with the selected value.",
-                                    "%s #%s -- The window will be %d pixels wide with the selected value.",
-                                    new_window_width),
-                           OPTIONS[mPageItems[iCurrentPage][iCurrentLine]].getTooltip().c_str(),
-                           OPTIONS[mPageItems[iCurrentPage][iCurrentLine]].getDefaultText().c_str(),
-                           new_window_width);
+			// TODO: Fix spacing between stuff in options menu
+			label += ngettext
+			(
+				"%s #%s -- The window will be %d pixel wide with the selected value.",
+				"%s #%s -- The window will be %d pixels wide with the selected value.",
+				new_window_width
+			);
+
+			label += OPTIONS[mPageItems[iCurrentPage][iCurrentLine]].getTooltip();
+            label += OPTIONS[mPageItems[iCurrentPage][iCurrentLine]].getDefaultText();
         } else if (mPageItems[iCurrentPage][iCurrentLine] == "TERMINAL_Y") {
             int new_terminal_y, new_window_height;
             std::stringstream value_conversion(OPTIONS[mPageItems[iCurrentPage][iCurrentLine]].getValueName());
@@ -1746,31 +1748,32 @@ std::string options_manager::show(bool ingame, const bool world_options_only)
             value_conversion >> new_terminal_y;
             new_window_height = projected_window_height(new_terminal_y);
 
-            fold_and_print(w_options_tooltip, 0, 0, 78, c_white,
-                           ngettext("%s #%s -- The window will be %d pixel tall with the selected value.",
-                                    "%s #%s -- The window will be %d pixels tall with the selected value.",
-                                    new_window_height),
-                           OPTIONS[mPageItems[iCurrentPage][iCurrentLine]].getTooltip().c_str(),
-                           OPTIONS[mPageItems[iCurrentPage][iCurrentLine]].getDefaultText().c_str(),
-                           new_window_height);
+			label += ngettext
+			(
+				"%s #%s -- The window will be %d pixel tall with the selected value.",
+				"%s #%s -- The window will be %d pixels tall with the selected value.",
+				new_window_width
+			);
+
+			label += OPTIONS[mPageItems[iCurrentPage][iCurrentLine]].getTooltip();
+            label += OPTIONS[mPageItems[iCurrentPage][iCurrentLine]].getDefaultText();
         } else
 #endif
         {
-            fold_and_print(w_options_tooltip, 0, 0, 78, c_white, "%s #%s",
-                           OPTIONS[mPageItems[iCurrentPage][iCurrentLine]].getTooltip().c_str(),
-                           OPTIONS[mPageItems[iCurrentPage][iCurrentLine]].getDefaultText().c_str());
+			label += OPTIONS[mPageItems[iCurrentPage][iCurrentLine]].getTooltip();
+            label += OPTIONS[mPageItems[iCurrentPage][iCurrentLine]].getDefaultText();
         }
 
         if ( iCurrentPage != iLastPage ) {
             iLastPage = iCurrentPage;
             if ( ingame && iCurrentPage == iWorldOptPage ) {
-                mvwprintz( w_options_tooltip, 3, 3, c_light_red, "%s", _("Note: ") );
-                wprintz(  w_options_tooltip, c_white, "%s",
-                          _("Some of these options may produce unexpected results if changed."));
+				label += "Note:"; // TODO: Should be red
+				label += "Some of these options may produce unexpected results if changed.";
             }
         }
-        wrefresh(w_options_tooltip);
 
+		label_pan->set_label(label);
+		win.draw();
         wrefresh(w_options);
 
         const std::string action = ctxt.handle_input();

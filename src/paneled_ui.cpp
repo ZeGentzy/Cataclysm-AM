@@ -171,7 +171,7 @@ void ui::border_manager::fix_borders()
 		{
 			if (tile == 0)
 			{
-				j++;
+				++j;
 				continue;
 			}
 
@@ -883,7 +883,7 @@ void ui::split_panel::set_size(point size, point offset)
 		{
 			owner->border_handler->add_border_data(border_dir, border_color);
 		}
-		i++;
+		++i;
 	}
 }
 
@@ -893,6 +893,21 @@ ui::label_panel::label_panel(bool bordered, size_t expected_text_amount)
 
 void ui::label_panel::draw()
 {
+	auto folded = foldstring(label, size.x);
+	for (size_t j = 0; j < (size_t)size.y; ++j)
+	{
+		for (size_t i = 0; i < (size_t)size.x; ++i)
+		{
+			mvwputch(owner->get_window(), offset.y + j, offset.x + i, c_black, ' ');
+		}
+
+		// TODO: Add a scroll bar
+		auto color = c_white;
+		if (j < folded.size())
+		{
+			print_colored_text(owner->get_window(), offset.y + j, offset.x, color, c_white, folded[j]);
+		}
+	}
 
 }
 
@@ -918,12 +933,12 @@ point ui::label_panel::min_size(int size, bool hieght)
 
 	if (hieght)
 	{
-		ret += {(int)label.length() / (size - ret.y), 0 };
+		ret += {expected_text_amount / (size - ret.y), 0 };
 		ret.y = size;
 	}
 	else
 	{
-		ret += {0, (int)label.length() / (size - ret.x)};
+		ret += {0, expected_text_amount / (size - ret.x)};
 		ret.x = size;
 	}
 
@@ -938,7 +953,7 @@ point ui::label_panel::perfered_size()
 		ret = {2, 2};
 	}
 
-	ret += {(int)label.length(), 1};
+	ret += {expected_text_amount, 1};
 	return ret;
 }
 
@@ -952,19 +967,38 @@ point ui::label_panel::perfered_size(int size, bool hieght)
 
 	if (hieght)
 	{
-		ret += {(int)label.length() / (size - ret.y), 0 };
+		ret += {expected_text_amount / (size - ret.y), 0 };
 		ret.y = size;
 	}
 	else
 	{
-		ret += {0, (int)label.length() / (size - ret.x)};
+		ret += {0, expected_text_amount / (size - ret.x)};
 		ret.x = size;
 	}
 
 	return ret;
 }
 
-void ui::label_panel::set_size(point /*size*/, point /*offset*/)
+void ui::label_panel::set_size(point size, point offset)
 {
+	this->size = size;
+	this->offset = offset;
 
+	if (bordered)
+	{
+		border_direction_vector border_dir
+		(
+			offset.x + size.x,
+			std::vector<border_direction>(offset.y + size.y, ui::border_direction::nothing)
+		);
+		border_color_vector border_color
+		(
+			offset.x + size.x,
+			std::vector<nc_color>(offset.y + size.y, nc_color())
+		);
+		utils::mark_border(offset, size, border_dir, border_color, true, BORDER_COLOR);
+		owner->border_handler->add_border_data(border_dir, border_color);
+		this->size -= {2, 2};
+		this->offset += {1, 1};
+	}
 }

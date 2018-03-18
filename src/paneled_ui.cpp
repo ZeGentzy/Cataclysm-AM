@@ -363,7 +363,7 @@ point ui::padding_panel::perfered_size()
 	point ret = {0, 0};
 	if (bordered)
 	{
-		ret = {1, 1};
+		ret = {2, 2};
 	}
 
 	if (child)
@@ -395,6 +395,66 @@ point ui::padding_panel::min_size()
 	if (ret.x == 0 || ret.y == 0)
 	{
 		ret = {1, 1};
+	}
+
+	return ret;
+}
+
+point ui::padding_panel::perfered_size(int size, bool hieght)
+{
+	point ret = {0, 0};
+	if (bordered)
+	{
+		ret = {2, 2};
+	}
+
+	if (child)
+	{
+		ret += child->perfered_size(size - ret.y, hieght);
+	}
+
+	if (ret.x == 0 || ret.y == 0)
+	{
+		ret = {1, 1};
+	}
+
+	if (hieght)
+	{
+		ret.y = size;
+	}
+	else
+	{
+		ret.x = size;
+	}
+
+	return ret;
+}
+
+point ui::padding_panel::min_size(int size, bool hieght)
+{
+	point ret = {0, 0};
+	if (bordered)
+	{
+		ret = {2, 2};
+	}
+
+	if (child)
+	{
+		ret += child->min_size(size - ret.y, hieght);
+	}
+
+	if (ret.x == 0 || ret.y == 0)
+	{
+		ret = {1, 1};
+	}
+
+	if (hieght)
+	{
+		ret.y = size;
+	}
+	else
+	{
+		ret.x = size;
 	}
 
 	return ret;
@@ -438,6 +498,43 @@ void ui::split_panel::draw()
 	{
 		child->draw();
 	}
+}
+
+point ui::split_panel::perfered_size(int size, bool hieght)
+{
+	point ret;
+	if (bordered)
+	{
+		ret = {2, 2};
+	}
+
+	if (entries_seperated)
+	{
+		if (stacked)
+		{
+			ret.y += std::max((size_t)0, children.size() - 1);
+		}
+		else
+		{
+			ret.x += std::max((size_t)0, children.size() - 1);
+		}
+	}
+
+	for (auto& child : children)
+	{
+		ret += child->perfered_size(size - (hieght ? ret.y : ret.x), hieght);
+	}
+
+	if (hieght)
+	{
+		ret.y = size;
+	}
+	else
+	{
+		ret.x = size;
+	}
+
+	return ret;
 }
 
 point ui::split_panel::perfered_size()
@@ -496,6 +593,43 @@ point ui::split_panel::min_size()
 	return ret;
 }
 
+point ui::split_panel::min_size(int size, bool hieght)
+{
+	point ret;
+	if (bordered)
+	{
+		ret = {2, 2};
+	}
+
+	if (entries_seperated)
+	{
+		if (stacked)
+		{
+			ret.y += std::max((size_t)0, children.size() - 1);
+		}
+		else
+		{
+			ret.x += std::max((size_t)0, children.size() - 1);
+		}
+	}
+
+	for (auto& child : children)
+	{
+		ret += child->min_size(size - (hieght ? ret.y : ret.x), hieght);
+	}
+
+	if (hieght)
+	{
+		ret.y = size;
+	}
+	else
+	{
+		ret.x = size;
+	}
+
+	return ret;
+}
+
 void ui::split_panel::update_sizes()
 {
 	auto s = size;
@@ -531,9 +665,20 @@ void ui::split_panel::update_sizes()
 
 	for (auto& child : children)
 	{
-		auto min = child->min_size();
+		point min;
+		point perfered;
 
-		auto perfered = child->perfered_size();
+		if (!stacked)
+		{
+			min = child->min_size(s.y, true);
+			perfered = child->perfered_size(s.y, true);
+		}
+		else
+		{
+			min = child->min_size(s.x, false);
+			perfered = child->perfered_size(s.x, false);
+		}
+
 		auto diff = perfered - min;
 
 		sizes.push_back(min);
@@ -551,7 +696,7 @@ void ui::split_panel::update_sizes()
 			size_t i = 0;
 			for (auto& child : children)
 			{
-				auto perfered = child->perfered_size();
+				auto perfered = child->perfered_size(s.y, true);
 				sizes[i].x = perfered.x;
 
 				++i;
@@ -575,7 +720,7 @@ void ui::split_panel::update_sizes()
 			size_t i = 0;
 			for (auto& child : children)
 			{
-				auto perfered = child->perfered_size();
+				auto perfered = child->perfered_size(s.x, false);
 				sizes[i].y = perfered.y;
 
 				++i;
@@ -740,4 +885,86 @@ void ui::split_panel::set_size(point size, point offset)
 		}
 		i++;
 	}
+}
+
+// -------
+ui::label_panel::label_panel(bool bordered, size_t expected_text_amount)
+	: bordered(bordered), expected_text_amount(expected_text_amount) {}
+
+void ui::label_panel::draw()
+{
+
+}
+
+point ui::label_panel::min_size()
+{
+	point ret;
+	if (bordered)
+	{
+		ret = {2, 2};
+	}
+
+	ret += {1, 1};
+	return ret;
+}
+
+point ui::label_panel::min_size(int size, bool hieght)
+{
+	point ret;
+	if (bordered)
+	{
+		ret = {2, 2};
+	}
+
+	if (hieght)
+	{
+		ret += {(int)label.length() / (size - ret.y), 0 };
+		ret.y = size;
+	}
+	else
+	{
+		ret += {0, (int)label.length() / (size - ret.x)};
+		ret.x = size;
+	}
+
+	return ret;
+}
+
+point ui::label_panel::perfered_size()
+{
+	point ret;
+	if (bordered)
+	{
+		ret = {2, 2};
+	}
+
+	ret += {(int)label.length(), 1};
+	return ret;
+}
+
+point ui::label_panel::perfered_size(int size, bool hieght)
+{
+	point ret;
+	if (bordered)
+	{
+		ret = {2, 2};
+	}
+
+	if (hieght)
+	{
+		ret += {(int)label.length() / (size - ret.y), 0 };
+		ret.y = size;
+	}
+	else
+	{
+		ret += {0, (int)label.length() / (size - ret.x)};
+		ret.x = size;
+	}
+
+	return ret;
+}
+
+void ui::label_panel::set_size(point /*size*/, point /*offset*/)
+{
+
 }

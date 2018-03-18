@@ -71,6 +71,10 @@ public:
 
 	virtual point min_size() = 0;
 	virtual point perfered_size() = 0;
+
+	virtual point min_size(int size, bool hieght) = 0;
+	virtual point perfered_size(int size, bool hieght) = 0;
+
 	virtual void set_size(point size, point offset) = 0;
 
 	virtual bool is_bordered() = 0;
@@ -87,9 +91,13 @@ class debug_panel2 : public panel
 	void draw() {}
 	point min_size() { return {11, 10}; }
 	point perfered_size() { return {20, 25}; }
+
 	bool is_bordered() { return true; };
 
 	void set_size(point size, point offset);
+
+	point min_size(int size, bool hieght) { return {(hieght ? min_size().x : size), (hieght ? size : min_size().y)}; };
+	point perfered_size(int size, bool hieght) { return {(hieght ? perfered_size().x : size), (hieght ? size : perfered_size().y)}; };
 };
 
 class debug_panel : public panel
@@ -100,6 +108,9 @@ class debug_panel : public panel
 	bool is_bordered() { return true; };
 
 	void set_size(point size, point offset);
+
+	point min_size(int size, bool hieght) { return {(hieght ? min_size().x : size), (hieght ? size : min_size().y)}; };
+	point perfered_size(int size, bool hieght) { return {(hieght ? perfered_size().x : size), (hieght ? size : perfered_size().y)}; };
 };
 
 class padding_panel : public panel
@@ -121,6 +132,8 @@ public:
 
 	point min_size();
 	point perfered_size();
+	point min_size(int size, bool hieght);
+	point perfered_size(int size, bool hieght);
 	void set_size(point size, point offset);
 
 	bool is_bordered() { return bordered; }
@@ -152,6 +165,8 @@ public:
 
 	point perfered_size();
 	point min_size();
+	point min_size(int size, bool hieght);
+	point perfered_size(int size, bool hieght);
 	void set_size(point size, point offset);
 
 	bool is_bordered() { return bordered; }
@@ -164,6 +179,34 @@ private:
 	bool entries_seperated;
 	std::vector<point> sizes;
 	std::vector<std::unique_ptr<panel>> children;
+	point size;
+	point offset;
+};
+
+class label_panel : public panel
+{
+public:
+	label_panel() { label_panel(false, 100); }
+	label_panel(bool bordered, size_t expected_text_amount);
+
+	void set_label(std::string label) { this->label = label; }
+	std::string get_label() { return label; }
+
+	void set_expected_text_amount(size_t expected_text_amount) { this->expected_text_amount = expected_text_amount; }
+	size_t get_expected_text_amount() { return expected_text_amount; }
+
+	void draw();
+	point min_size();
+	point perfered_size();
+	point min_size(int size, bool hieght);
+	point perfered_size(int size, bool hieght);
+	void set_size(point size, point offset);
+
+	bool is_bordered() { return bordered; }
+private:
+	std::string label;
+	bool bordered;
+	size_t expected_text_amount;
 	point size;
 	point offset;
 };
